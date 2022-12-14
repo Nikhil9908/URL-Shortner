@@ -41,11 +41,11 @@ const createShortUrl = async function (req, res) {
 
         let createdUrl = await GET_ASYNC(`${longUrl}`)
         if (createdUrl) {
-        return res.status(200).send({ status: false, message: "Short URL is already present.", data: urlData })
+            return res.status(200).send({ status: false, message: "Short URL is already present in cache.", data: createdUrl })
         }
 
         let urlData = await urlModel.findOne({ longUrl: longUrl }).select({ longUrl: 1, shortUrl: 1, urlCode: 1, _id: 0 })
-        if (urlData) return res.status(200).send({ status: false, message: "Short URL is already present.", data: urlData })
+        if (urlData) return res.status(200).send({ status: false, message: "Short URL is already present DB.", data: urlData })
 
         let baseUrl = "http://localhost:3000/"
         let urlCode = shortener.generate()
@@ -59,7 +59,7 @@ const createShortUrl = async function (req, res) {
 
         let savedData = await urlModel.create(data)
 
-        // await SET_ASYNC(`${longUrl}`, JSON.stringify(short))
+        await SET_ASYNC(`${longUrl}`, shortUrl)
 
         const resultData = {
             longUrl: savedData.longUrl,
@@ -80,17 +80,14 @@ const redirectShortUrl = async function (req, res) {
         if (!urlCode) return res.status(400).send({ status: false, msg: "url code not present in params" })
 
         let findUrl = await GET_ASYNC(`${urlCode}`)
-        console.log(findUrl)
+        
         if (findUrl) {
-            let ul = findUrl
-            return res.status(302).redirect(ul)
+            return res.status(302).redirect(findUrl)
         } else {
             let urlData = await urlModel.findOne({ urlCode: urlCode })
-            // console.log(urlData)
             if (!urlData) return res.status(404).send({ status: false, message: "URL not found !!!" })
 
             await SET_ASYNC(`${urlCode}`, urlData.longUrl)
-
             return res.status(302).redirect(urlData.longUrl)
         }
     } catch (err) {
