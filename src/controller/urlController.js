@@ -22,7 +22,7 @@ redisClient.on("connect", async function () {
 
 //2. Prepare the functions for each command
 
-const SET_ASYNC = promisify(redisClient.SET).bind(redisClient);
+const SET_ASYNC = promisify(redisClient.SETEX).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
 
@@ -42,11 +42,17 @@ const createShortUrl = async function (req, res) {
         }
 
         let urlData = await urlModel.findOne({ longUrl: longUrl }).select({ longUrl: 1, shortUrl: 1, urlCode: 1, _id: 0 })
-        if (urlData) return res.status(200).send({ status: false, message: "Short URL is already present DB.", data: urlData })
+        if (urlData) {
+            await SET_ASYNC(`${longUrl}`, 20, urlData.shortUrl)
+            return res.status(200).send({ status: false, message: "Short URL is already present DB.", data: urlData })
+        }
+
+
 
         let baseUrl = "http://localhost:3000/"
         let urlCode = shortid.generate()
         let shortUrl = baseUrl + urlCode
+
 
 
         data.shortUrl = shortUrl
@@ -54,7 +60,7 @@ const createShortUrl = async function (req, res) {
 
         let savedData = await urlModel.create(data)
 
-        await SET_ASYNC(`${longUrl}`, shortUrl)
+        await SET_ASYNC(`${longUrl}`, 20, shortUrl)
 
         const resultData = {
             longUrl: savedData.longUrl,
@@ -82,9 +88,10 @@ const redirectShortUrl = async function (req, res) {
             let urlData = await urlModel.findOne({ urlCode: urlCode })
             if (!urlData) return res.status(404).send({ status: false, message: "URL not found !!!" })
 
-            await SET_ASYNC(`${urlCode}`, urlData.longUrl)
+            await SET_ASYNC(`${urlCode}`, 20, urlData.longUrl)
             return res.status(302).redirect(urlData.longUrl)
         }
+
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
     }
