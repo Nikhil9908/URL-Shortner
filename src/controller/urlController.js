@@ -1,8 +1,7 @@
-const shortener = require('shortid')
+const shortid = require('shortid')
 const validUrl = require('valid-url')
 const urlModel = require('../models/urlModel')
 const redis = require("redis");
-
 const { promisify } = require("util");
 
 //1. Connect to the redis server
@@ -34,9 +33,7 @@ const createShortUrl = async function (req, res) {
         let { longUrl } = data
 
         if (!longUrl) return res.status(400).send({ status: false, message: "longUrl is required !!!" })
-
         if (typeof longUrl != 'string') return res.status(400).send({ status: false, message: "Long url must be a string" });
-
         if (!validUrl.isUri(longUrl)) return res.status(400).send({ status: false, message: "Invalid longUrl !!!" })
 
         let createdUrl = await GET_ASYNC(`${longUrl}`)
@@ -48,11 +45,9 @@ const createShortUrl = async function (req, res) {
         if (urlData) return res.status(200).send({ status: false, message: "Short URL is already present DB.", data: urlData })
 
         let baseUrl = "http://localhost:3000/"
-        let urlCode = shortener.generate()
+        let urlCode = shortid.generate()
         let shortUrl = baseUrl + urlCode
 
-        let shortUrlData = await urlModel.findOne({ shortUrl: shortUrl, urlCode: urlCode })
-        if (shortUrlData) return res.status(400).send({ status: false, message: "Please try again, the generated shortUrl already exist for another longUrl !!!" })
 
         data.shortUrl = shortUrl
         data.urlCode = urlCode
@@ -80,7 +75,7 @@ const redirectShortUrl = async function (req, res) {
         if (!urlCode) return res.status(400).send({ status: false, msg: "url code not present in params" })
 
         let findUrl = await GET_ASYNC(`${urlCode}`)
-        
+
         if (findUrl) {
             return res.status(302).redirect(findUrl)
         } else {
