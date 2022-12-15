@@ -20,7 +20,7 @@ redisClient.on("connect", async function () {
 
 
 
-//2. Prepare the functions for each command
+
 
 const SET_ASYNC = promisify(redisClient.SETEX).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
