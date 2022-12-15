@@ -91,10 +91,11 @@ const redirectShortUrl = async function (req, res) {
             await SET_ASYNC(`${urlCode}`, 20, JSON.stringify(urlData))
             return res.status(302).redirect(urlData.longUrl)
         }
-
+        
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
     }
+    
 }
 
 module.exports = { createShortUrl, redirectShortUrl }
