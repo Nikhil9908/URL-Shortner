@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const { default : mongoose } = require('mongoose')
+const  mongoose  = require('mongoose')
 const route = require('./routes/route')
 
 app.use(express.json())
