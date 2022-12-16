@@ -16,16 +16,10 @@ redisClient.auth("wGuCtqcu61tfLx321OV9DK24x0hV0qwc", function (err) {
 
 redisClient.on("connect", async function () {
     console.log("Connected to Redis..");
-});
-
-
-
-
+})
 
 const SET_ASYNC = promisify(redisClient.SETEX).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
-
-
 
 const createShortUrl = async function (req, res) {
     try {
@@ -47,13 +41,12 @@ const createShortUrl = async function (req, res) {
             return res.status(201).send({ status: false, message: "Short URL is already present DB.", data: urlData })
         }
 
-
-
         let baseUrl = "http://localhost:3000/"
         let urlCode = shortid.generate()
         let shortUrl = baseUrl + urlCode
 
-
+        // let shortUrlData = await urlModel.findOne({ urlCode : urlCode , shortUrl : shortUrl })
+        // if(!shortUrlData) return res.status(400).send({ status : false , message : "Please try again, the generated shortUrl already exists for another longUrl !!!" })
 
         data.shortUrl = shortUrl
         data.urlCode = urlCode
@@ -78,7 +71,6 @@ const redirectShortUrl = async function (req, res) {
     try {
 
         let urlCode = req.params.urlCode.toLowerCase()
-        if (!urlCode) return res.status(400).send({ status: false, msg: "url code not present in params" })
 
         let findUrl = await GET_ASYNC(`${urlCode}`)
 
